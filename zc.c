@@ -30,26 +30,25 @@ long milliseconds() {
 // --complete
 int main(int argc, char **argv)
 {
-    int fd = -1;
-    int opt;
-    while ((opt = getopt(argc, argv, "f:h")) != -1) {
-        switch (opt) {
+    FILE *database = NULL;
+    int option;
+    while ((option = getopt(argc, argv, "f:h")) != -1) {
+        switch (option) {
         default:
         case 'h':
             die("Usage: %s -F DATABASE", argv[0]);
         case 'f':
-            fd = open(optarg, O_CREAT | O_RDWR, 0600);
-            if (fd < 0) {
+            if (!(database = fopen(optarg, "a+"))) {
                 die("Failed opening '%s' (%d): %s",
                     optarg, errno, strerror(errno));
             }
-            if (flock(fd, LOCK_EX)) {
+            if (flock(fileno(database), LOCK_EX)) {
                 die("Failed locking '%s' (%d): %s",
                     optarg, errno, strerror(errno));
             }
             break;
         }
     }
-    printf("Hello %d %ld\n", fd, milliseconds());
+    printf("Hello %ld\n", milliseconds());
     exit(EXIT_SUCCESS);
 }
