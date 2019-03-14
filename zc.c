@@ -95,11 +95,18 @@ int main(int argc, char **argv)
         if (errno) {
             die("Failed reading database at line %d (%d): %s",
                 line, errno, strerror(errno));
-        } else if (bytes < 0) {
-            break;
-        } else {
-            puts(lineptr);
         }
+        if (bytes < 0) {
+            break;
+        }
+        if (bytes == 0) {
+            continue;
+        }
+        if (lineptr[bytes - 1] == '\n') {
+            lineptr[--bytes] = 0;
+        }
+
+        puts(lineptr);
     }
 
 
