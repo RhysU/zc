@@ -32,11 +32,11 @@ long milliseconds() {
 struct row {
     struct row *next;
     char *path;
-    int rank;
+    long rank;
     long time;
 };
 
-struct row *cons(struct row *tail, char *path, int rank, long time) {
+struct row *cons(struct row *tail, char *path, long rank, long time) {
     struct row * head = malloc(sizeof(struct row));
     if (!head) {
         die("Failed malloc (%d): %s", errno, strerror(errno));
@@ -84,11 +84,18 @@ struct row *load(FILE *database) {
             if (!path) die("No path in line %d", line);
             char *rank = strtok(NULL, DELIMITERS);
             if (!rank) die("No rank in line %d", line);
+            long rankl = strtol(rank, NULL, 10);
+            if (errno) die("Invalid rank '%s' in line %d (%d): %s",
+                           rank, line, errno, strerror(errno));
             char *time = strtok(NULL, DELIMITERS);
             if (!time) die("No time in line %d", line);
+            long timel = strtol(time, NULL, 10);
+            if (errno) die("Invalid time '%s' in line %d (%d): %s",
+                           time, line, errno, strerror(errno));
             if (strtok(NULL, DELIMITERS)) die("Excess in line %d", line);
 
-            head = cons(head, path, 1, 1);  // FIXME
+            // Built up the reverse of the desired result
+            head = cons(head, path, rankl, timel);
         }
     }
     return reverse(head);
@@ -121,7 +128,8 @@ int main(int argc, char **argv)
     }
     struct row *head = load(database);
     while (head) {
-        puts(head->path);
+        // FIXME
+        printf("%s   %ld   %ld\n", head->path, head->rank, head->time);
         head = head->next;
     }
 
