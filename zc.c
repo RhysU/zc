@@ -8,6 +8,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <sys/file.h>
 #include <sys/stat.h>
 #include <sys/time.h>
 #include <sys/types.h>
@@ -33,15 +34,20 @@ int main(int argc, char **argv)
     int opt;
     while ((opt = getopt(argc, argv, "f:h")) != -1) {
         switch (opt) {
+        default:
+        case 'h':
+            die("Usage: %s -F DATABASE", argv[0]);
         case 'f':
             fd = open(optarg, O_CREAT | O_RDWR, 0600);
-            if (fd < 0) die("Failed opening '%s' (%d): %s",
-                            optarg, errno, strerror(errno));
+            if (fd < 0) {
+                die("Failed opening '%s' (%d): %s",
+                    optarg, errno, strerror(errno));
+            }
+            if (flock(fd, LOCK_EX)) {
+                die("Failed locking '%s' (%d): %s",
+                    optarg, errno, strerror(errno));
+            }
             break;
-        case 'h':
-            die("Unimplemented");
-        default:
-            die("Usage: %s -F DATABASE", argv[0]);
         }
     }
     printf("Hello %d %ld\n", fd, milliseconds());
