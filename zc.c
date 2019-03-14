@@ -138,8 +138,8 @@ int main(int argc, char **argv)
     if (!database) {
         die("Database must be specified.");
     }
-
     struct row *head = load(database);
+
     while (head) {
         // FIXME
         printf("%s   %ld   %ld\n", head->path, head->rank, head->time);
