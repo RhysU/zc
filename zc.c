@@ -102,7 +102,7 @@ struct row *load(FILE *database) {
 // --complete
 int main(int argc, char **argv)
 {
-    // Process arguments with post-condition that database is open
+    // Process arguments with post-condition that database is loaded
     FILE *database = NULL;
     int option;
     while ((option = getopt(argc, argv, "f:h")) != -1) {
@@ -111,7 +111,7 @@ int main(int argc, char **argv)
         case 'h':
             die("Usage: %s -F DATABASE", argv[0]);
         case 'f':
-            if (!(database = fopen(optarg, "a+"))) {
+            if (!(database = fopen(optarg, "ab+"))) {
                 die("Failed opening '%s' (%d): %s",
                     optarg, errno, strerror(errno));
             }
