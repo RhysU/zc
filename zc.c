@@ -140,6 +140,15 @@ int main(int argc, char **argv)
     }
     struct row *head = load(database);
 
+    // Add or complete or list/go
+    if (add) {
+        // TODO
+    } else if (complete) {
+        // TODO
+    } else {
+        // TODO
+    }
+
     while (head) {
         // FIXME
         printf("%s   %ld   %ld\n", head->path, head->rank, head->time);
