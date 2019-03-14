@@ -57,6 +57,33 @@ struct row *reverse(struct row *head)
     return prev;
 }
 
+struct row *load(FILE *database) {
+    struct row *head = NULL;
+    if (database) {
+        for (int line = 1; /*NOP*/; errno = 0, ++line) {
+            char *lineptr = NULL;
+            size_t n = 0;
+            ssize_t bytes = getline(&lineptr, &n, database);
+            if (errno) {
+                die("Failed reading database at line %d (%d): %s",
+                    line, errno, strerror(errno));
+            }
+            if (bytes < 0) {
+                break;
+            }
+            if (bytes == 0) {
+                continue;
+            }
+            if (lineptr[bytes - 1] == '\n') {
+                lineptr[--bytes] = 0;
+            }
+
+            puts(lineptr);
+        }
+    }
+    return head;
+}
+
 // --add
 // --complete
 int main(int argc, char **argv)
@@ -82,34 +109,8 @@ int main(int argc, char **argv)
             break;
         }
     }
-    if (!database) {
-        die("Database not specified");
-    }
+    struct row *head = load(database);
 
-    // Read database into memory with
-    struct row *tail = NULL;
-    for (int line = 1; /*NOP*/; errno = 0, ++line) {
-        char *lineptr = NULL;
-        size_t n = 0;
-        ssize_t bytes = getline(&lineptr, &n, database);
-        if (errno) {
-            die("Failed reading database at line %d (%d): %s",
-                line, errno, strerror(errno));
-        }
-        if (bytes < 0) {
-            break;
-        }
-        if (bytes == 0) {
-            continue;
-        }
-        if (lineptr[bytes - 1] == '\n') {
-            lineptr[--bytes] = 0;
-        }
-
-        puts(lineptr);
-    }
-
-
-    (void) tail;
+    (void) head;
     exit(EXIT_SUCCESS);
 }
