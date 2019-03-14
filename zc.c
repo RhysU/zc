@@ -132,30 +132,29 @@ int main(int argc, char **argv)
             break;
         }
     }
-    if (add && complete) {
-        die("Cannot both (a)dd and (c)omplete.");
-    }
     if (!database) {
         die("Database must be specified.");
     }
     struct row *head = load(database);
 
-    // Make positional arguments become argv[1] ... argv[argc-1].
-    char *prog = argv[0];
-    argv += optind - 1;
-    argc -= optind - 1;
-    argv[0] = prog;
-
-    // Add or complete or list/go
+    // Process positional arguments using the loaded database
     if (add) {
-        if (argc != 2) {
-            die("Exactly one argument required for (a)dd.");
+        if (complete) die("Cannot both (a)dd and (c)omplete.");
+
+        // Add in reverse as if separate program invocations
+        for (int ipos = argc; ipos --> optind;) {
+            printf("%d: %s\n", ipos, argv[ipos]);
         }
-        // TODO argv[1]
+
     } else if (complete) {
+        if (add) die("Cannot both (a)dd and (c)omplete.");
+
         // TODO
-    } else {
+
+    } else { // Match incoming arguments
+
         // TODO
+
     }
 
     while (head) {
