@@ -77,11 +77,10 @@ struct row *load(FILE *database) {
             if (lineptr[bytes - 1] == '\n') {
                 lineptr[--bytes] = 0;
             }
-
-            puts(lineptr);
+            head = cons(head, lineptr, 1, 1);  // FIXME
         }
     }
-    return head;
+    return reverse(head);
 }
 
 // --add
@@ -110,7 +109,10 @@ int main(int argc, char **argv)
         }
     }
     struct row *head = load(database);
+    while (head) {
+        puts(head->path);
+        head = head->next;
+    }
 
-    (void) head;
     exit(EXIT_SUCCESS);
 }
