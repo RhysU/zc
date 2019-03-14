@@ -22,12 +22,6 @@
 #define SEPARATOR ('|')
 #define DELIMITERS ("|\n")
 
-long milliseconds() {
-    struct timeval now;
-    gettimeofday(&now, NULL);
-    return 1000*now.tv_sec + now.tv_usec/1000;
-}
-
 struct row {
     struct row *next;
     char *path;
@@ -98,6 +92,32 @@ struct row *load(FILE *database) {
         }
     }
     return reverse(head);
+}
+
+long milliseconds() {
+    struct timeval now;
+    gettimeofday(&now, NULL);
+    return 1000*now.tv_sec + now.tv_usec/1000;
+}
+
+struct row *add(struct row *head, char *path) {
+    long now = milliseconds();
+    bool found = false;
+    long count = 0;
+    for (struct row *curr = head; curr; curr = curr->next) {
+        if (0 == strcmp(path, curr->path)) {
+            found = true;
+            ++curr->rank;
+            curr->time = now;
+        }
+        count += curr->rank;
+    }
+    if (!found) {
+        head = cons(head, path, 1L, now);
+        ++count;
+    }
+    // FIXME STARTHERE Aging
+    return head;
 }
 
 // --add
