@@ -127,8 +127,6 @@ struct row *record(struct row *head, char *path) {
     return head;
 }
 
-// --add
-// --complete
 int main(int argc, char **argv)
 {
     // Process arguments with post-condition that database is loaded.
