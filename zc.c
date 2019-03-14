@@ -26,10 +26,42 @@ long milliseconds() {
     return 1000*now.tv_sec + now.tv_usec/1000;
 }
 
+struct row {
+    struct row *next;
+    char *path;
+    int rank;
+    long time;
+};
+
+struct row *cons(struct row *tail, char *path, int rank, long time) {
+    struct row * head = malloc(sizeof(struct row));
+    if (!head) {
+        die("Failed malloc (%d): %s", errno, strerror(errno));
+    }
+    head->next = tail;
+    head->path = path;
+    head->rank = rank;
+    head->time = time;
+    return head;
+}
+
+struct row *reverse(struct row *head)
+{
+    struct row *prev = NULL, *curr = head, *next;
+    while (curr) {
+        next = curr->next;
+        curr->next = prev;
+        prev = curr;
+        curr = next;
+    }
+    return prev;
+}
+
 // --add
 // --complete
 int main(int argc, char **argv)
 {
+    // Process arguments with post-condition that database is open
     FILE *database = NULL;
     int option;
     while ((option = getopt(argc, argv, "f:h")) != -1) {
@@ -46,9 +78,31 @@ int main(int argc, char **argv)
                 die("Failed locking '%s' (%d): %s",
                     optarg, errno, strerror(errno));
             }
+            rewind(database);
             break;
         }
     }
-    printf("Hello %ld\n", milliseconds());
+    if (!database) {
+        die("Database must be specified");
+    }
+
+    // Read database into memory with
+    struct row *tail = NULL;
+    for (int line = 1; /*NOP*/; ++line) {
+        errno = 0;
+        char *lineptr = NULL;
+        size_t n = 0;
+        if (getline(&lineptr, &n, database) < 0) {
+            die("Failed reading database at line %d (%d): %s",
+                line, errno, strerror(errno));
+        } else if (!lineptr[0]) {
+            // No content
+        } else {
+            puts(lineptr);
+        }
+    }
+
+
+    (void) tail;
     exit(EXIT_SUCCESS);
 }
