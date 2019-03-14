@@ -5,16 +5,18 @@
 #define _POSIX_C_SOURCE 200809L
 #include <errno.h>
 #include <stdio.h>
+#include <stdbool.h>
 #include <stdlib.h>
 #include <string.h>
 #include <sys/file.h>
 #include <sys/time.h>
 #include <unistd.h>
 
-#define die(...) do {                  \
-        fprintf (stderr, __VA_ARGS__); \
-        fputc('\n', stderr);           \
-        exit(EXIT_FAILURE); }          \
+#define die(...) do {                 \
+        fputs("zc: ", stderr);        \
+        fprintf(stderr, __VA_ARGS__); \
+        fputc('\n', stderr);          \
+        exit(EXIT_FAILURE); }         \
     while (0)
 
 #define SEPARATOR ('|')
@@ -103,13 +105,21 @@ struct row *load(FILE *database) {
 int main(int argc, char **argv)
 {
     // Process arguments with post-condition that database is loaded
+    bool add = false;
+    bool complete = false;
     FILE *database = NULL;
     int option;
-    while ((option = getopt(argc, argv, "f:h")) != -1) {
+    while ((option = getopt(argc, argv, "acf:h")) != -1) {
         switch (option) {
         default:
+        case 'a':
+            add = true;
+            break;
+        case 'c':
+            complete = true;
+            break;
         case 'h':
-            die("Usage: %s -F DATABASE", argv[0]);
+            die("Usage: %s [-ac] -f DATABASE ARG...", argv[0]);
         case 'f':
             if (!(database = fopen(optarg, "ab+"))) {
                 die("Failed opening '%s' (%d): %s",
@@ -119,10 +129,16 @@ int main(int argc, char **argv)
                 die("Failed locking '%s' (%d): %s",
                     optarg, errno, strerror(errno));
             }
-            rewind(database);
             break;
         }
     }
+    if (add && complete) {
+        die("Cannot both (a)dd and (c)omplete.");
+    }
+    if (!database) {
+        die("Database must be specified.");
+    }
+
     struct row *head = load(database);
     while (head) {
         // FIXME
