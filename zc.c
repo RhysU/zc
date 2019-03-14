@@ -130,5 +130,12 @@ int main(int argc, char **argv)
         head = head->next;
     }
 
+    if (!freopen(NULL, "w", database)) { // FIXME
+        die("Error freopening (%d): %s", errno, strerror(errno));
+    }
+    fprintf(database, "hi|6|%ld\n", milliseconds() - 10);
+    fprintf(database, "me|7|%ld\n", milliseconds() - 35);
+    fprintf(database, "yo|7|%ld\n", milliseconds() - 85);
+
     exit(EXIT_SUCCESS);
 }
