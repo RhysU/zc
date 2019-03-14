@@ -104,7 +104,7 @@ struct row *load(FILE *database) {
 // --complete
 int main(int argc, char **argv)
 {
-    // Process arguments with post-condition that database is loaded
+    // Process arguments with post-condition that database is loaded.
     bool add = false;
     bool complete = false;
     FILE *database = NULL;
@@ -140,9 +140,18 @@ int main(int argc, char **argv)
     }
     struct row *head = load(database);
 
+    // Make positional arguments become argv[1] ... argv[argc-1].
+    char *prog = argv[0];
+    argv += optind - 1;
+    argc -= optind - 1;
+    argv[0] = prog;
+
     // Add or complete or list/go
     if (add) {
-        // TODO
+        if (argc != 2) {
+            die("Exactly one argument required for (a)dd.");
+        }
+        // TODO argv[1]
     } else if (complete) {
         // TODO
     } else {
