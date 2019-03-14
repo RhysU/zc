@@ -20,6 +20,9 @@
         exit(EXIT_FAILURE); }          \
     while (0)
 
+#define SEPARATOR ('|')
+#define DELIMITERS ("|\n")
+
 long milliseconds() {
     struct timeval now;
     gettimeofday(&now, NULL);
@@ -61,6 +64,7 @@ struct row *load(FILE *database) {
     struct row *head = NULL;
     if (database) {
         for (int line = 1; /*NOP*/; errno = 0, ++line) {
+            // Load each line of the file into lineptr
             char *lineptr = NULL;
             size_t n = 0;
             ssize_t bytes = getline(&lineptr, &n, database);
@@ -74,10 +78,17 @@ struct row *load(FILE *database) {
             if (bytes == 0) {
                 continue;
             }
-            if (lineptr[bytes - 1] == '\n') {
-                lineptr[--bytes] = 0;
-            }
-            head = cons(head, lineptr, 1, 1);  // FIXME
+
+            // Tokenize each line into (path, rank, time)
+            char *path = strtok(lineptr, DELIMITERS);
+            if (!path) die("No path in line %d", line);
+            char *rank = strtok(NULL, DELIMITERS);
+            if (!rank) die("No rank in line %d", line);
+            char *time = strtok(NULL, DELIMITERS);
+            if (!time) die("No time in line %d", line);
+            if (strtok(NULL, DELIMITERS)) die("Excess in line %d", line);
+
+            head = cons(head, path, 1, 1);  // FIXME
         }
     }
     return reverse(head);
