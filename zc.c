@@ -172,6 +172,14 @@ int main(int argc, char **argv)
         for (int ipos = argc; ipos --> optind;) {
             head = record(head, argv[ipos]);
         }
+        // Overwrite database with updated contents
+        if (!freopen(NULL, "w", database)) { // FIXME
+            die("Error freopening (%d): %s", errno, strerror(errno));
+        }
+        for (struct row *curr = head; curr; curr = curr->next) {
+            fprintf(database, "%s%c%ld%c%ld\n",
+                    curr->path, SEPARATOR, curr->rank, SEPARATOR, curr->time);
+        }
 
     } else if (complete) {
         if (add) die("Cannot both (a)dd and (c)omplete.");
@@ -183,19 +191,6 @@ int main(int argc, char **argv)
         // TODO
 
     }
-
-    while (head) {
-        // FIXME
-        printf("%s   %ld   %ld\n", head->path, head->rank, head->time);
-        head = head->next;
-    }
-
-    if (!freopen(NULL, "w", database)) { // FIXME
-        die("Error freopening (%d): %s", errno, strerror(errno));
-    }
-    fprintf(database, "hi|6|%ld\n", milliseconds() - 10);
-    fprintf(database, "me|7|%ld\n", milliseconds() - 35);
-    fprintf(database, "yo|7|%ld\n", milliseconds() - 85);
 
     exit(EXIT_SUCCESS);
 }
