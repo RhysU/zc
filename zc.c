@@ -83,20 +83,20 @@ int main(int argc, char **argv)
         }
     }
     if (!database) {
-        die("Database must be specified");
+        die("Database not specified");
     }
 
     // Read database into memory with
     struct row *tail = NULL;
-    for (int line = 1; /*NOP*/; ++line) {
-        errno = 0;
+    for (int line = 1; /*NOP*/; errno = 0, ++line) {
         char *lineptr = NULL;
         size_t n = 0;
-        if (getline(&lineptr, &n, database) < 0) {
+        ssize_t bytes = getline(&lineptr, &n, database);
+        if (errno) {
             die("Failed reading database at line %d (%d): %s",
                 line, errno, strerror(errno));
-        } else if (!lineptr[0]) {
-            // No content
+        } else if (bytes < 0) {
+            break;
         } else {
             puts(lineptr);
         }
