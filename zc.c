@@ -21,6 +21,8 @@
 
 #define SEPARATOR ('|')
 #define DELIMITERS ("|\n")
+#define AGING_THRESHOLD (9000)
+#define AGING_RESCALING (0.99)
 
 struct row {
     struct row *next;
@@ -100,7 +102,8 @@ long milliseconds() {
     return 1000*now.tv_sec + now.tv_usec/1000;
 }
 
-struct row *add(struct row *head, char *path) {
+// Unlike rupa/z, here aging cannot exclude the newest addition.
+struct row *record(struct row *head, char *path) {
     long now = milliseconds();
     bool found = false;
     long count = 0;
@@ -112,11 +115,15 @@ struct row *add(struct row *head, char *path) {
         }
         count += curr->rank;
     }
+    if (count > AGING_THRESHOLD) {
+        for (struct row *curr = head; curr; curr = curr->next) {
+            curr->rank *= AGING_RESCALING;
+        }
+    }
     if (!found) {
         head = cons(head, path, 1L, now);
         ++count;
     }
-    // FIXME STARTHERE Aging
     return head;
 }
 
@@ -163,7 +170,7 @@ int main(int argc, char **argv)
 
         // Add in reverse as if separate program invocations
         for (int ipos = argc; ipos --> optind;) {
-            printf("%d: %s\n", ipos, argv[ipos]);
+            head = record(head, argv[ipos]);
         }
 
     } else if (complete) {
