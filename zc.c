@@ -27,7 +27,6 @@
 #define AGING_THRESHOLD (9000)
 #define AGING_RESCALING (0.99)
 
-// TODO Macro for a linear traversal?
 struct row {
     struct row *next;
     char *path;
