@@ -6,6 +6,7 @@
 #define _POSIX_C_SOURCE 200809L
 #include <ctype.h>
 #include <errno.h>
+#include <limits.h>
 #include <stdio.h>
 #include <stdbool.h>
 #include <stdlib.h>
@@ -155,6 +156,14 @@ struct row *matches(struct row *head, int argc, char **argv) {
     return reverse(results);
 }
 
+long frecent(long now, long rank, long time) {
+    long seconds = (time - now) / 1000;
+    if (seconds <   3600) return rank * 4;
+    if (seconds <  86400) return rank * 2;
+    if (seconds < 604800) return rank / 2;
+    return rank / 4;
+}
+
 int main(int argc, char **argv)
 {
     // Process arguments with post-condition that database is loaded.
@@ -221,7 +230,20 @@ int main(int argc, char **argv)
 
     } else { // Match incoming arguments
 
-        // TODO
+        // Find all entries matching these segments and return most frecent
+        head = matches(head, argc - optind, &argv[optind]);
+        long best = LONG_MIN;
+        struct row *winner = NULL;
+        long now = milliseconds();
+        for (struct row *curr = head; curr; curr = curr->next) {
+            long score = frecent(now, curr->rank, curr->time);
+            if (score > best) {
+                winner = curr;
+            }
+        }
+        if (winner) {
+            fprintf(stdout, "%s\n", winner->path);
+        }
 
     }
 
