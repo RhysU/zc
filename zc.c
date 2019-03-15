@@ -168,7 +168,7 @@ int main(int argc, char **argv)
     if (add) {
         if (complete) die("Cannot both (a)dd and (c)omplete.");
 
-        // Add in reverse as if separate program invocations
+        // Add in reverse of CLI as if separate program invocations
         for (int ipos = argc; ipos --> optind;) {
             head = record(head, argv[ipos]);
         }
