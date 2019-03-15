@@ -138,11 +138,11 @@ struct row *matches(struct row *head, int argc, char **argv) {
     struct row * results = NULL;
     for (struct row *curr = head; curr; curr = curr->next) {
         bool all = true;
-        char *p = curr->path;
+        char *q = curr->path;
         for (int i = 0; i < argc; ++i) {
-            char *q = strstr(p, argv[i]);
+            q = strstr(q, argv[i]);
             if (q) {
-                p = q + strlen(argv[i]);
+                q += strlen(argv[i]);
             } else {
                 all = false;
                 break;
