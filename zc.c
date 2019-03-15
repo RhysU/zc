@@ -4,6 +4,7 @@
  * No free(3) calls because this process is lightweight and short-lived.
  */
 #define _POSIX_C_SOURCE 200809L
+#include <ctype.h>
 #include <errno.h>
 #include <stdio.h>
 #include <stdbool.h>
@@ -128,8 +129,18 @@ struct row *record(struct row *head, char *path) {
     return head;
 }
 
+bool all_lower(char *s) {
+    for (char c = *s; c; c = *++s) {
+        if (c != tolower(c)) {
+            return false;
+        }
+    }
+    return true;
+}
+
 struct row *match(struct row *head, int argc, char **argv) {
     struct row * matches = NULL;
+
     return reverse(matches);
 }
 
