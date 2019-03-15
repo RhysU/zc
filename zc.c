@@ -128,6 +128,11 @@ struct row *record(struct row *head, char *path) {
     return head;
 }
 
+struct row *match(struct row *head, int argc, char **argv) {
+    struct row * matches = NULL;
+    return reverse(matches);
+}
+
 int main(int argc, char **argv)
 {
     // Process arguments with post-condition that database is loaded.
@@ -186,7 +191,11 @@ int main(int argc, char **argv)
     } else if (complete) {
         if (add) die("Cannot both (a)dd and (c)omplete.");
 
-        // TODO
+        // Print all entries in the database matching these segments
+        head = match(head, argc - optind, &argv[optind]);
+        for (struct row *curr = head; curr; curr = curr->next) {
+            fprintf(stdout, "%s\n", curr->path);
+        }
 
     } else { // Match incoming arguments
 
