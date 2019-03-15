@@ -10,6 +10,7 @@
 #include <stdbool.h>
 #include <stdlib.h>
 #include <string.h>
+#include <strings.h>
 #include <sys/file.h>
 #include <sys/time.h>
 #include <unistd.h>
@@ -26,6 +27,7 @@
 #define AGING_THRESHOLD (9000)
 #define AGING_RESCALING (0.99)
 
+// TODO Macro for a linear traversal?
 struct row {
     struct row *next;
     char *path;
@@ -129,19 +131,29 @@ struct row *record(struct row *head, char *path) {
     return head;
 }
 
-bool all_lower(char *s) {
-    for (char c = *s; c; c = *++s) {
-        if (c != tolower(c)) {
-            return false;
+// Construct a new list of all entries matching argv[0]...argv[argc-1]
+struct row *matches(struct row *head, int argc, char **argv) {
+
+    // Accumulate all entries matching all segments
+    struct row * results = NULL;
+    for (struct row *curr = head; curr; curr = curr->next) {
+        bool all = true;
+        char *p = curr->path;
+        for (int i = 0; i < argc; ++i) {
+            char *q = strstr(p, argv[i]);
+            if (q) {
+                p = q + strlen(argv[i]);
+            } else {
+                all = false;
+                break;
+            }
+        }
+        if (all) {
+            results = cons(results, curr->path, curr->rank, curr->time);
         }
     }
-    return true;
-}
 
-struct row *match(struct row *head, int argc, char **argv) {
-    struct row * matches = NULL;
-
-    return reverse(matches);
+    return reverse(results);
 }
 
 int main(int argc, char **argv)
@@ -203,7 +215,7 @@ int main(int argc, char **argv)
         if (add) die("Cannot both (a)dd and (c)omplete.");
 
         // Print all entries in the database matching these segments
-        head = match(head, argc - optind, &argv[optind]);
+        head = matches(head, argc - optind, &argv[optind]);
         for (struct row *curr = head; curr; curr = curr->next) {
             fprintf(stdout, "%s\n", curr->path);
         }
