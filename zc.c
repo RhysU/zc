@@ -1,6 +1,7 @@
 /*
- * zc: C version of https://github.com/rupa/z.
- * Licensed under the Apache License, Version 2.0.
+ * zc: C version of parts of https://github.com/rupa/z.
+ * Licensed under the WTFPL (version 2) following rupa/z.
+ * No free(3) calls because this process is lightweight and short-lived.
  */
 #define _POSIX_C_SOURCE 200809L
 #include <errno.h>
