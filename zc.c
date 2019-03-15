@@ -172,13 +172,15 @@ int main(int argc, char **argv)
         for (int ipos = argc; ipos --> optind;) {
             head = record(head, argv[ipos]);
         }
-        // Overwrite database with updated contents
+        // Overwrite database with updated contents for all positive ranks
         if (!freopen(NULL, "w", database)) { // FIXME
             die("Error freopening (%d): %s", errno, strerror(errno));
         }
         for (struct row *curr = head; curr; curr = curr->next) {
-            fprintf(database, "%s%c%ld%c%ld\n",
-                    curr->path, SEPARATOR, curr->rank, SEPARATOR, curr->time);
+            if (curr->rank > 0) {
+                fprintf(database, "%s%c%ld%c%ld\n", curr->path,
+                        SEPARATOR, curr->rank, SEPARATOR, curr->time);
+            }
         }
 
     } else if (complete) {
