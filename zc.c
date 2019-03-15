@@ -144,7 +144,8 @@ int main(int argc, char **argv)
             complete = true;
             break;
         case 'h':
-            die("Usage: %s [-ac] -f DATABASE ARG...", argv[0]);
+            fprintf(stdout, "Usage: %s [-ac] -f DATABASE ARG...\n", argv[0]);
+            exit(EXIT_SUCCESS);
         case 'f':
             if (!(database = fopen(optarg, "ab+"))) {
                 die("Failed opening '%s' (%d): %s",
