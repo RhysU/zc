@@ -161,16 +161,23 @@ typedef int (*comparator)(struct row *, struct row *);
 struct row *merge(struct row *left, struct row *right, comparator cmp) {
     struct row *tail = NULL;
 
-    if (left && right) {
-        if (cmp(left, right) <= 0) {
-            // TODO
+    while (left) {
+        struct row *head;
+        if (right && cmp(left, right) <= 0) {
+            head = right;
+            right = right->next;
         } else {
-            // TODO
+            head = left;
+            left = left->next;
         }
-    } else if (left) {
-        // TODO
-    } else if (right) {
-        // TODO
+        head->next = tail;
+        tail = head;
+    }
+    while (right) {
+        struct row *head = right;
+        right = right->next;
+        head->next = tail;
+        tail = head;
     }
 
     return tail;
