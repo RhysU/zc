@@ -93,7 +93,7 @@ struct row *load(FILE *database) {
                            time, line, errno, strerror(errno));
             if (strtok(NULL, DELIMITERS)) die("Excess in line %d", line);
 
-            // Built up the reverse of the desired result
+            // Build up the reverse of the desired result
             head = cons(head, path, rankl, timel);
         }
     }
@@ -154,6 +154,12 @@ struct row *matches(struct row *head, int argc, char **argv) {
     }
 
     return reverse(results);
+}
+
+typedef int (*comparator)(struct row *, struct row *);
+
+struct row *sort(struct row *left, struct row *right, comparator cmp) {
+    return NULL;
 }
 
 long frecent(long now, long rank, long time) {
