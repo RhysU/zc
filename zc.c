@@ -183,6 +183,35 @@ struct row *merge(struct row *left, struct row *right, comparator cmp) {
     return tail;
 }
 
+struct row *sort(struct row *tail, comparator cmp) {
+    // Split tail into left, right
+    struct row *left = NULL, *right = NULL;
+    while (tail) {
+        // Prepend onto left
+        struct row *head = tail;
+        tail = tail->next;
+        head->next = left;
+        left = head;
+        // Prepend onto right iff another element
+        if (tail) {
+            head = tail;
+            tail = tail->next;
+            head->next = right;
+            right = head;
+        }
+    }
+
+    // Sort left, right iff multiple items
+    if (left && left->next) {
+        left = sort(left, cmp);
+    }
+    if (right && right->next) {
+        right = sort(right, cmp);
+    }
+
+    return merge(left, right, cmp);
+}
+
 long frecent(long now, long rank, long time) {
     long seconds = (time - now) / 1000;
     if (seconds <   3600) return rank * 4;
