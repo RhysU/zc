@@ -164,26 +164,27 @@ long frecent(long now, long rank, long time) {
     return rank / 4;
 }
 
+enum mode { ADD, COMPLETE, FRECENT, RANK, TIME };
+
 int main(int argc, char **argv)
 {
     // Process arguments with post-condition that database is loaded.
-    bool add = false;
-    bool complete = false;
     FILE *database = NULL;
     int option;
-    while ((option = getopt(argc, argv, "acf:h")) != -1) {
+    enum mode mode = COMPLETE;
+    while ((option = getopt(argc, argv, "ad:fhrt")) != -1) {
         switch (option) {
         default:
-        case 'a':
-            add = true;
-            break;
-        case 'c':
-            complete = true;
-            break;
         case 'h':
-            fprintf(stdout, "Usage: %s [-ac] -f DATABASE ARG...\n", argv[0]);
-            exit(EXIT_SUCCESS);
-        case 'f':
+            fprintf(option == 'h' ? stdout : stderr,
+                    "Usage: %s -d DATABASE -a PATH...\n"
+                    "Usage: %s -d DATABASE [-f] [-r] [-t] NEEDLE...\n",
+                    argv[0], argv[0]);
+            exit(option == 'h' ? EXIT_SUCCESS : EXIT_FAILURE);
+        case 'a':
+            mode = ADD;
+            break;
+        case 'd':
             if (!(database = fopen(optarg, "ab+"))) {
                 die("Failed opening '%s' (%d): %s",
                     optarg, errno, strerror(errno));
@@ -193,6 +194,15 @@ int main(int argc, char **argv)
                     optarg, errno, strerror(errno));
             }
             break;
+        case 'f':
+            mode = FRECENT;
+            break;
+        case 'r':
+            mode = RANK;
+            break;
+        case 't':
+            mode = TIME;
+            break;
         }
     }
     if (!database) {
@@ -200,16 +210,16 @@ int main(int argc, char **argv)
     }
     struct row *head = load(database);
 
-    // Process positional arguments using the loaded database
-    if (add) {
-        if (complete) die("Cannot both (a)dd and (c)omplete.");
+    // Now process positional arguments using the loaded database.
 
+    // Possibly add entries to the database...
+    if (mode == ADD) {
         // Add in reverse of CLI as if separate program invocations
         for (int ipos = argc; ipos --> optind;) {
             head = record(head, argv[ipos]);
         }
         // Overwrite database with updated contents for all positive ranks
-        if (!freopen(NULL, "w", database)) { // FIXME
+        if (!freopen(NULL, "w", database)) {
             die("Error freopening (%d): %s", errno, strerror(errno));
         }
         for (struct row *curr = head; curr; curr = curr->next) {
@@ -218,31 +228,26 @@ int main(int argc, char **argv)
                         SEPARATOR, curr->rank, SEPARATOR, curr->time);
             }
         }
+        exit(EXIT_SUCCESS);
+    }
 
-    } else if (complete) {
-        if (add) die("Cannot both (a)dd and (c)omplete.");
+    // Find all entries matching the positional segments
+    head = matches(head, argc - optind, &argv[optind]);
 
-        // Print all entries in the database matching these segments
-        head = matches(head, argc - optind, &argv[optind]);
+    // TODO Sort all matches per the given criterion
+
+    if (mode == COMPLETE) {
+
+        // Either print all matching entries from the database...
         for (struct row *curr = head; curr; curr = curr->next) {
             fprintf(stdout, "%s\n", curr->path);
         }
 
-    } else { // Match incoming arguments
+    } else {
 
-        // Find all entries matching these segments and return most frecent
-        head = matches(head, argc - optind, &argv[optind]);
-        long best = LONG_MIN;
-        struct row *winner = NULL;
-        long now = milliseconds();
-        for (struct row *curr = head; curr; curr = curr->next) {
-            long score = frecent(now, curr->rank, curr->time);
-            if (score > best) {
-                winner = curr;
-            }
-        }
-        if (winner) {
-            fprintf(stdout, "%s\n", winner->path);
+        // ...or print only the first result.
+        if (head) {
+            fprintf(stdout, "%s\n", head->path);
         }
 
     }
