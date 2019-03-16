@@ -158,8 +158,22 @@ struct row *matches(struct row *head, int argc, char **argv) {
 
 typedef int (*comparator)(struct row *, struct row *);
 
-struct row *sort(struct row *left, struct row *right, comparator cmp) {
-    return NULL;
+struct row *merge(struct row *left, struct row *right, comparator cmp) {
+    struct row *tail = NULL;
+
+    if (left && right) {
+        if (cmp(left, right) <= 0) {
+            // TODO
+        } else {
+            // TODO
+        }
+    } else if (left) {
+        // TODO
+    } else if (right) {
+        // TODO
+    }
+
+    return tail;
 }
 
 long frecent(long now, long rank, long time) {
