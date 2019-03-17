@@ -17,7 +17,7 @@
 #include <unistd.h>
 
 // Initialized in main(...)
-static long NOW_MILLIS = 0;
+static long NOW = 0;
 
 #define die(...) do {                 \
         fputs("zc: ", stderr);        \
@@ -36,7 +36,16 @@ struct row {
     char *path;
     long rank;
     long time;
+    long frecency;
 };
+
+long frecency(long rank, long time) {
+    long age = (time - NOW);
+    if (age <   3600000) return rank * 4;
+    if (age <  86400000) return rank * 2;
+    if (age < 604800000) return rank / 2;
+    return rank / 4;
+}
 
 struct row *cons(struct row *tail, char *path, long rank, long time) {
     struct row * head = malloc(sizeof(struct row));
@@ -47,6 +56,7 @@ struct row *cons(struct row *tail, char *path, long rank, long time) {
     head->path = path;
     head->rank = rank;
     head->time = time;
+    head->frecency = frecency(rank, time);
     return head;
 }
 
@@ -111,7 +121,7 @@ struct row *add(struct row *head, char *path) {
         if (0 == strcmp(path, curr->path)) {
             found = true;
             ++curr->rank;
-            curr->time = NOW_MILLIS;
+            curr->time = NOW;
         }
         count += curr->rank;
     }
@@ -121,7 +131,7 @@ struct row *add(struct row *head, char *path) {
         }
     }
     if (!found) {
-        head = cons(head, path, 1L, NOW_MILLIS);
+        head = cons(head, path, 1L, NOW);
         ++count;
     }
     return head;
@@ -208,14 +218,6 @@ struct row *sort(struct row *tail, comparator cmp) {
     return merge(left, right, cmp);
 }
 
-long frecent(long rank, long time) {
-    long seconds = (time - NOW_MILLIS) / 1000;
-    if (seconds <   3600) return rank * 4;
-    if (seconds <  86400) return rank * 2;
-    if (seconds < 604800) return rank / 2;
-    return rank / 4;
-}
-
 long milliseconds() {
     struct timeval now;
     gettimeofday(&now, NULL);
@@ -226,7 +228,7 @@ enum mode { ADD, COMPLETE, FRECENT, RANK, TIME };
 
 int main(int argc, char **argv)
 {
-    NOW_MILLIS = milliseconds();
+    NOW = milliseconds();
 
     // Process arguments with post-condition that database is loaded.
     FILE *database = NULL;
