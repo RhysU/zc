@@ -107,7 +107,7 @@ long milliseconds() {
 }
 
 // Unlike rupa/z, here aging cannot exclude the newest addition.
-struct row *record(struct row *head, char *path) {
+struct row *add(struct row *head, char *path) {
     long now = milliseconds();
     bool found = false;
     long count = 0;
@@ -272,7 +272,7 @@ int main(int argc, char **argv)
     if (mode == ADD) {
         // Add in reverse of CLI as if separate program invocations
         for (int ipos = argc; ipos --> optind;) {
-            head = record(head, argv[ipos]);
+            head = add(head, argv[ipos]);
         }
         // Overwrite database with updated contents for all positive ranks
         if (!freopen(NULL, "w", database)) {
