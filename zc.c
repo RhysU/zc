@@ -206,6 +206,11 @@ struct row *merge(struct row *left, struct row *right, comparator cmp) {
 }
 
 struct row *sort(struct row *tail, comparator cmp) {
+    // Eagerly return when no work to perform
+    if (!tail || !tail->next) {
+        return tail;
+    }
+
     // Split tail into left, right
     struct row *left = NULL, *right = NULL;
     while (tail) {
@@ -223,15 +228,8 @@ struct row *sort(struct row *tail, comparator cmp) {
         }
     }
 
-    // Sort left, right iff multiple items
-    if (left && left->next) {
-        left = sort(left, cmp);
-    }
-    if (right && right->next) {
-        right = sort(right, cmp);
-    }
-
-    return merge(left, right, cmp);
+    // Recurse then merge results from left/right
+    return merge(sort(left, cmp), sort(right, cmp), cmp);
 }
 
 long milliseconds() {
