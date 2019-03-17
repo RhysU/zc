@@ -54,9 +54,9 @@ struct row *cons(struct row *tail, char *path, long rank, long time) {
     }
     head->next = tail;
     head->path = path;
+    head->frecency = frecency(rank, time);
     head->rank = rank;
     head->time = time;
-    head->frecency = frecency(rank, time);
     return head;
 }
 
@@ -163,6 +163,22 @@ struct row *matches(struct row *head, int argc, char **argv) {
 }
 
 typedef int (*comparator)(struct row *, struct row *);
+
+int compare_paths(struct row *a, struct row *b) {
+    return strcmp(a->path, b->path);
+}
+
+int compare_ranks(struct row *a, struct row *b) {
+    return a->rank - b->rank;
+}
+
+int compare_times(struct row *a, struct row *b) {
+    return a->time - b->time;
+}
+
+int compare_frecencies(struct row *a, struct row *b) {
+    return a->frecency - b->frecency;
+}
 
 struct row *merge(struct row *left, struct row *right, comparator cmp) {
     struct row *tail = NULL;
@@ -296,7 +312,12 @@ int main(int argc, char **argv)
     // Find all entries matching the positional segments
     head = matches(head, argc - optind, &argv[optind]);
 
-    // TODO Sort all matches per the given criterion
+    // Sort all matches per the given criterion
+    comparator cmp = (mode == FRECENT) ? &compare_frecencies
+                   : (mode == RANK)    ? &compare_ranks
+                   : (mode == TIME)    ? &compare_times
+                   :                     &compare_paths;
+    head = sort(head, cmp);
 
     if (mode == COMPLETE) {
 
