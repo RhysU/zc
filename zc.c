@@ -16,6 +16,9 @@
 #include <sys/time.h>
 #include <unistd.h>
 
+// Initialized in main(...)
+static long NOW_MILLIS = 0;
+
 #define die(...) do {                 \
         fputs("zc: ", stderr);        \
         fprintf(stderr, __VA_ARGS__); \
@@ -100,22 +103,15 @@ struct row *load(FILE *database) {
     return reverse(head);
 }
 
-long milliseconds() {
-    struct timeval now;
-    gettimeofday(&now, NULL);
-    return 1000*now.tv_sec + now.tv_usec/1000;
-}
-
 // Unlike rupa/z, here aging cannot exclude the newest addition.
 struct row *add(struct row *head, char *path) {
-    long now = milliseconds();
     bool found = false;
     long count = 0;
     for (struct row *curr = head; curr; curr = curr->next) {
         if (0 == strcmp(path, curr->path)) {
             found = true;
             ++curr->rank;
-            curr->time = now;
+            curr->time = NOW_MILLIS;
         }
         count += curr->rank;
     }
@@ -125,7 +121,7 @@ struct row *add(struct row *head, char *path) {
         }
     }
     if (!found) {
-        head = cons(head, path, 1L, now);
+        head = cons(head, path, 1L, NOW_MILLIS);
         ++count;
     }
     return head;
@@ -212,18 +208,26 @@ struct row *sort(struct row *tail, comparator cmp) {
     return merge(left, right, cmp);
 }
 
-long frecent(long now, long rank, long time) {
-    long seconds = (time - now) / 1000;
+long frecent(long rank, long time) {
+    long seconds = (time - NOW_MILLIS) / 1000;
     if (seconds <   3600) return rank * 4;
     if (seconds <  86400) return rank * 2;
     if (seconds < 604800) return rank / 2;
     return rank / 4;
 }
 
+long milliseconds() {
+    struct timeval now;
+    gettimeofday(&now, NULL);
+    return 1000*now.tv_sec + now.tv_usec/1000;
+}
+
 enum mode { ADD, COMPLETE, FRECENT, RANK, TIME };
 
 int main(int argc, char **argv)
 {
+    NOW_MILLIS = milliseconds();
+
     // Process arguments with post-condition that database is loaded.
     FILE *database = NULL;
     int option;
