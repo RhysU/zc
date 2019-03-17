@@ -205,6 +205,13 @@ struct row *merge(struct row *left, struct row *right, comparator cmp) {
     return tail;
 }
 
+void fprint_paths(FILE *stream, struct row *tail, char sep) {
+    for (struct row *curr = tail; curr; curr = curr->next) {
+        fprintf(stream, "%s%c", curr->path, sep);
+    }
+}
+
+// FIXME Broken
 struct row *sort(struct row *tail, comparator cmp) {
     // Eagerly return when no work to perform
     if (!tail || !tail->next) {
@@ -320,9 +327,7 @@ int main(int argc, char **argv)
     if (mode == COMPLETE) {
 
         // Either print all matching entries from the database...
-        for (struct row *curr = head; curr; curr = curr->next) {
-            fprintf(stdout, "%s\n", curr->path);
-        }
+        fprint_paths(stdout, head, '\n');
 
     } else {
 
