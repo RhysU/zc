@@ -180,12 +180,26 @@ int compare_frecencies(struct row *a, struct row *b) {
     return a->frecency - b->frecency;
 }
 
-struct row *merge(struct row *left, struct row *right, comparator cmp) {
+void fprint_paths(FILE *stream, struct row *tail, char sep) {
+    for (struct row *curr = tail; curr; curr = curr->next) {
+        fprintf(stream, "%s%c", curr->path, sep);
+    }
+}
+
+struct row *merge(
+        struct row *left, struct row *right, comparator cmp, bool reverse
+) {
+    int maybe_reverse = reverse ? -1 : 1;
     struct row *tail = NULL;
+
+    fprint_paths(stderr, left, '|');
+    fputc('*', stderr);
+    fprint_paths(stderr, right, '|');
+    fputc('*', stderr);
 
     while (left) {
         struct row *head;
-        if (right && cmp(left, right) <= 0) {
+        if (right && maybe_reverse * cmp(left, right) <= 0) {
             head = right;
             right = right->next;
         } else {
@@ -202,17 +216,14 @@ struct row *merge(struct row *left, struct row *right, comparator cmp) {
         tail = head;
     }
 
+    fprint_paths(stderr, tail, '|');
+    fputc('\n', stderr);
+
     return tail;
 }
 
-void fprint_paths(FILE *stream, struct row *tail, char sep) {
-    for (struct row *curr = tail; curr; curr = curr->next) {
-        fprintf(stream, "%s%c", curr->path, sep);
-    }
-}
-
 // FIXME Broken
-struct row *sort(struct row *tail, comparator cmp) {
+struct row *sort(struct row *tail, comparator cmp, bool reverse) {
     // Eagerly return when no work to perform
     if (!tail || !tail->next) {
         return tail;
@@ -236,7 +247,10 @@ struct row *sort(struct row *tail, comparator cmp) {
     }
 
     // Recurse then merge results from left/right
-    return merge(sort(left, cmp), sort(right, cmp), cmp);
+    return merge(sort(left, cmp, !reverse),
+                 sort(right, cmp, !reverse),
+                 cmp,
+                 reverse);
 }
 
 long milliseconds() {
@@ -250,6 +264,27 @@ enum mode { ADD, COMPLETE, FRECENT, RANK, TIME };
 int main(int argc, char **argv)
 {
     NOW = milliseconds();
+
+    struct row *left = NULL;
+    left = cons(left, "d", 1, 1);
+    left = cons(left, "e", 1, 1);
+    left = cons(left, "c", 1, 1);
+    left = cons(left, "a", 1, 1);
+    left = cons(left, "b", 1, 1);
+    fprint_paths(stderr, sort(left, compare_paths, false), '|');
+    fputc('\n', stderr);
+    exit(EXIT_FAILURE);
+
+    //struct row *left = NULL;
+    //left = cons(left, "d", 1, 1);
+    //left = cons(left, "c", 1, 1);
+    //left = cons(left, "a", 1, 1);
+    //struct row *right = NULL;
+    //right = cons(right, "f", 1, 1);
+    //right = cons(right, "e", 1, 1);
+    //right = cons(right, "b", 1, 1);
+    //merge(left, right, compare_paths);
+    //exit(EXIT_FAILURE);
 
     // Process arguments with post-condition that database is loaded.
     FILE *database = NULL;
@@ -322,7 +357,7 @@ int main(int argc, char **argv)
                    : (mode == RANK)    ? &compare_ranks
                    : (mode == TIME)    ? &compare_times
                    :                     &compare_paths;
-    head = sort(head, cmp);
+    head = sort(head, cmp, false);
 
     if (mode == COMPLETE) {
 
