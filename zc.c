@@ -195,18 +195,18 @@ void move(struct row **dst, struct row **src) {
     *dst = item;
 }
 
-struct row *sort(struct row *tail, comparator cmp, bool reverse) {
+struct row *sort(struct row *list, comparator cmp, bool reverse) {
     // Eagerly return when no work to perform
-    if (!tail || !tail->next) {
-        return tail;
+    if (!list || !list->next) {
+        return list;
     }
 
-    // Split tail evenly into into a/b
+    // Split list evenly into into a/b
     struct row *a = NULL, *b = NULL;
-    while (tail) {
-        move(&a, &tail);
-        if (tail) {
-            move(&b, &tail);
+    while (list) {
+        move(&a, &list);
+        if (list) {
+            move(&b, &list);
         }
     }
 
@@ -218,16 +218,16 @@ struct row *sort(struct row *tail, comparator cmp, bool reverse) {
     int maybe_reverse = reverse ? -1 : 1;
     while (a) {
         if (b && maybe_reverse * cmp(a, b) <= 0) {
-            move(&tail, &b);
+            move(&list, &b);
         } else {
-            move(&tail, &a);
+            move(&list, &a);
         }
     }
     while (b) {
-        move(&tail, &b);
+        move(&list, &b);
     }
 
-    return tail;
+    return list;
 }
 
 long milliseconds() {
@@ -244,6 +244,7 @@ int main(int argc, char **argv)
 
     struct row *left = NULL;
     left = cons(left, "d", 1, 1);
+    left = cons(left, "f", 1, 1);
     left = cons(left, "e", 1, 1);
     left = cons(left, "c", 1, 1);
     left = cons(left, "a", 1, 1);
