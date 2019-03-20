@@ -234,16 +234,10 @@ struct row *sort(struct row *tail, comparator cmp, bool reverse) {
     struct row *left = NULL, *right = NULL;
     while (tail) {
         // Prepend onto left
-        struct row *head = tail;
-        tail = tail->next;
-        head->next = left;
-        left = head;
+        move(&left, &tail);
         // Prepend onto right iff another element
         if (tail) {
-            head = tail;
-            tail = tail->next;
-            head->next = right;
-            right = head;
+            move(&right, &tail);
         }
     }
 
