@@ -242,28 +242,6 @@ int main(int argc, char **argv)
 {
     NOW = milliseconds();
 
-    struct row *left = NULL;
-    left = cons(left, "d", 1, 1);
-    left = cons(left, "f", 1, 1);
-    left = cons(left, "e", 1, 1);
-    left = cons(left, "c", 1, 1);
-    left = cons(left, "a", 1, 1);
-    left = cons(left, "b", 1, 1);
-    fprint_paths(stderr, sort(left, compare_paths, false), '|');
-    fputc('\n', stderr);
-    exit(EXIT_FAILURE);
-
-    //struct row *left = NULL;
-    //left = cons(left, "d", 1, 1);
-    //left = cons(left, "c", 1, 1);
-    //left = cons(left, "a", 1, 1);
-    //struct row *right = NULL;
-    //right = cons(right, "f", 1, 1);
-    //right = cons(right, "e", 1, 1);
-    //right = cons(right, "b", 1, 1);
-    //merge(left, right, compare_paths);
-    //exit(EXIT_FAILURE);
-
     // Process arguments with post-condition that database is loaded.
     FILE *database = NULL;
     int option;
