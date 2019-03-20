@@ -223,25 +223,23 @@ struct row *merge(
     return tail;
 }
 
-// FIXME Broken
 struct row *sort(struct row *tail, comparator cmp, bool reverse) {
     // Eagerly return when no work to perform
     if (!tail || !tail->next) {
         return tail;
     }
 
-    // Split tail into left, right
+    // Split tail evenly into into left/right
     struct row *left = NULL, *right = NULL;
     while (tail) {
-        // Prepend onto left
         move(&left, &tail);
-        // Prepend onto right iff another element
         if (tail) {
             move(&right, &tail);
         }
     }
 
-    // Recurse then merge results from left/right
+    // Recurse then merge results from left/right.
+    // Reverse sort order at each step to accommodate singly-linked data.
     return merge(sort(left, cmp, !reverse),
                  sort(right, cmp, !reverse),
                  cmp,
