@@ -60,6 +60,7 @@ struct row *cons(struct row *tail, char *path, long rank, long time) {
     return head;
 }
 
+// TODO Likely not needed in the final version
 struct row *reverse(struct row *head)
 {
     struct row *prev = NULL, *curr = head, *next;
@@ -186,6 +187,14 @@ void fprint_paths(FILE *stream, struct row *tail, char sep) {
     }
 }
 
+// Move non-NULL head from src onto dest.
+void move(struct row **dst, struct row **src) {
+    struct row *item = *src;
+    *src = (*src)->next;
+    item->next = *dst;
+    *dst = item;
+}
+
 struct row *merge(
         struct row *left, struct row *right, comparator cmp, bool reverse
 ) {
@@ -198,22 +207,14 @@ struct row *merge(
     fputc('*', stderr);
 
     while (left) {
-        struct row *head;
         if (right && maybe_reverse * cmp(left, right) <= 0) {
-            head = right;
-            right = right->next;
+            move(&tail, &right);
         } else {
-            head = left;
-            left = left->next;
+            move(&tail, &left);
         }
-        head->next = tail;
-        tail = head;
     }
     while (right) {
-        struct row *head = right;
-        right = right->next;
-        head->next = tail;
-        tail = head;
+        move(&tail, &right);
     }
 
     fprint_paths(stderr, tail, '|');
