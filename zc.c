@@ -236,7 +236,7 @@ long milliseconds() {
     return 1000*now.tv_sec + now.tv_usec/1000;
 }
 
-enum mode { ADD, COMPLETE, FRECENT, RANK, TIME };
+enum mode { ADD, COMPLETE, ONE };
 
 int main(int argc, char **argv)
 {
@@ -246,6 +246,7 @@ int main(int argc, char **argv)
     FILE *database = NULL;
     int option;
     enum mode mode = COMPLETE;
+    comparator cmp = &compare_paths;
     while ((option = getopt(argc, argv, "ad:fhrt")) != -1) {
         switch (option) {
         default:
@@ -269,13 +270,16 @@ int main(int argc, char **argv)
             }
             break;
         case 'f':
-            mode = FRECENT;
+            cmp = &compare_frecencies;
+            mode = ONE;
             break;
         case 'r':
-            mode = RANK;
+            cmp = &compare_ranks;
+            mode = ONE;
             break;
         case 't':
-            mode = TIME;
+            cmp = &compare_times;
+            mode = ONE;
             break;
         }
     }
@@ -305,28 +309,19 @@ int main(int argc, char **argv)
         exit(EXIT_SUCCESS);
     }
 
+    // FIXME Broken somehow
     // Find all entries matching the positional segments
     head = matches(head, argc - optind, &argv[optind]);
 
     // Sort all matches per the given criterion
-    comparator cmp = (mode == FRECENT) ? &compare_frecencies
-                   : (mode == RANK)    ? &compare_ranks
-                   : (mode == TIME)    ? &compare_times
-                   :                     &compare_paths;
     head = sort(head, cmp, false);
 
+    // Either print all matching entries from the database...
+    // ...or print only the first result.
     if (mode == COMPLETE) {
-
-        // Either print all matching entries from the database...
         fprint_paths(stdout, head, '\n');
-
-    } else {
-
-        // ...or print only the first result.
-        if (head) {
-            fprintf(stdout, "%s\n", head->path);
-        }
-
+    } else if (head) {
+        fprintf(stdout, "%s\n", head->path);
     }
 
     exit(EXIT_SUCCESS);
