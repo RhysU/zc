@@ -195,55 +195,39 @@ void move(struct row **dst, struct row **src) {
     *dst = item;
 }
 
-struct row *merge(
-        struct row *left, struct row *right, comparator cmp, bool reverse
-) {
-    int maybe_reverse = reverse ? -1 : 1;
-    struct row *tail = NULL;
-
-    fprint_paths(stderr, left, '|');
-    fputc('*', stderr);
-    fprint_paths(stderr, right, '|');
-    fputc('*', stderr);
-
-    while (left) {
-        if (right && maybe_reverse * cmp(left, right) <= 0) {
-            move(&tail, &right);
-        } else {
-            move(&tail, &left);
-        }
-    }
-    while (right) {
-        move(&tail, &right);
-    }
-
-    fprint_paths(stderr, tail, '|');
-    fputc('\n', stderr);
-
-    return tail;
-}
-
 struct row *sort(struct row *tail, comparator cmp, bool reverse) {
     // Eagerly return when no work to perform
     if (!tail || !tail->next) {
         return tail;
     }
 
-    // Split tail evenly into into left/right
-    struct row *left = NULL, *right = NULL;
+    // Split tail evenly into into a/b
+    struct row *a = NULL, *b = NULL;
     while (tail) {
-        move(&left, &tail);
+        move(&a, &tail);
         if (tail) {
-            move(&right, &tail);
+            move(&b, &tail);
         }
     }
 
-    // Recurse then merge results from left/right.
-    // Reverse sort order at each step to accommodate singly-linked data.
-    return merge(sort(left, cmp, !reverse),
-                 sort(right, cmp, !reverse),
-                 cmp,
-                 reverse);
+    // Recurse on a/b with ordering flip to handle singly-linked data
+    a = sort(a, cmp, !reverse);
+    b = sort(b, cmp, !reverse);
+
+    // Merge the recursive results adhering to reverse
+    int maybe_reverse = reverse ? -1 : 1;
+    while (a) {
+        if (b && maybe_reverse * cmp(a, b) <= 0) {
+            move(&tail, &b);
+        } else {
+            move(&tail, &a);
+        }
+    }
+    while (b) {
+        move(&tail, &b);
+    }
+
+    return tail;
 }
 
 long milliseconds() {
