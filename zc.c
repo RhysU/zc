@@ -35,7 +35,7 @@ struct row {
     struct row *next;
     char *path;
     long rank;
-    long time;
+    long millis;
     long frecency;
 };
 
@@ -48,16 +48,16 @@ long frecency(long rank, long millis) {
     return rank / 4;
 }
 
-struct row *cons(struct row *tail, char *path, long rank, long time) {
+struct row *cons(struct row *tail, char *path, long rank, long millis) {
     struct row * head = malloc(sizeof(struct row));
     if (!head) {
         die("Failed malloc (%d): %s", errno, strerror(errno));
     }
     head->next = tail;
     head->path = path;
-    head->frecency = frecency(rank, time);
+    head->frecency = frecency(rank, millis);
     head->rank = rank;
-    head->time = time;
+    head->millis = millis;
     return head;
 }
 
@@ -80,7 +80,7 @@ struct row *load(FILE *database) {
                 continue;
             }
 
-            // Tokenize each line into (path, rank, time)
+            // Tokenize each line into (path, rank, millis)
             char *path = strtok(lineptr, DELIMITERS);
             if (!path) die("No path in line %d", line);
             char *rank = strtok(NULL, DELIMITERS);
@@ -88,11 +88,11 @@ struct row *load(FILE *database) {
             long rankl = strtol(rank, NULL, 10);
             if (errno) die("Invalid rank '%s' in line %d (%d): %s",
                            rank, line, errno, strerror(errno));
-            char *time = strtok(NULL, DELIMITERS);
-            if (!time) die("No time in line %d", line);
-            long timel = strtol(time, NULL, 10);
-            if (errno) die("Invalid time '%s' in line %d (%d): %s",
-                           time, line, errno, strerror(errno));
+            char *millis = strtok(NULL, DELIMITERS);
+            if (!millis) die("No millis in line %d", line);
+            long timel = strtol(millis, NULL, 10);
+            if (errno) die("Invalid millis '%s' in line %d (%d): %s",
+                           millis, line, errno, strerror(errno));
             if (strtok(NULL, DELIMITERS)) die("Excess in line %d", line);
 
             // Build up the desired result
@@ -110,7 +110,7 @@ struct row *add(struct row *head, char *path) {
         if (0 == strcmp(path, curr->path)) {
             found = true;
             ++curr->rank;
-            curr->time = NOW;
+            curr->millis = NOW;
         }
         count += curr->rank;
     }
@@ -143,7 +143,7 @@ struct row *matches(struct row *head, int argc, char **argv) {
             }
         }
         if (all) {
-            results = cons(results, curr->path, curr->rank, curr->time);
+            results = cons(results, curr->path, curr->rank, curr->millis);
         }
     }
 
@@ -153,7 +153,7 @@ struct row *matches(struct row *head, int argc, char **argv) {
 typedef int (*comparator)(struct row *, struct row *);
 
 int compare_times(struct row *a, struct row *b) {
-    int i = b->time - a->time;
+    int i = b->millis - a->millis;
     return i ? i : strcmp(a->path, b->path);
 }
 
@@ -286,7 +286,7 @@ int main(int argc, char **argv)
         }
     }
     if (!database) {
-        die("Database must be specified.");
+        die("Database required per help available with -h.");
     }
     struct row *head = load(database);
 
@@ -305,7 +305,7 @@ int main(int argc, char **argv)
         for (struct row *curr = head; curr; curr = curr->next) {
             if (curr->rank > 0) {
                 fprintf(database, "%s%c%ld%c%ld\n", curr->path,
-                        SEPARATOR, curr->rank, SEPARATOR, curr->time);
+                        SEPARATOR, curr->rank, SEPARATOR, curr->millis);
             }
         }
         exit(EXIT_SUCCESS);
