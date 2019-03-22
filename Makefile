@@ -53,17 +53,24 @@ check_match:
 check_rank:
 	rm -f db.rank
 	./zc -d db.rank -a foo
+	cmp <(./zc -d db.rank -r oo) <(echo -ne "foo\n")  # Just one
+	cmp <(./zc -d db.rank -f oo) <(echo -ne "foo\n")  # Frequency like rank
 	./zc -d db.rank -a Foo
+	cmp <(./zc -d db.rank -r oo) <(echo -ne "Foo\n")  # Time breaks ties
+	cmp <(./zc -d db.rank -f oo) <(echo -ne "Foo\n")  # Frequency like rank
 	./zc -d db.rank -a foo
 	cmp <(./zc -d db.rank -r oo) <(echo -ne "foo\n")
-	cmp <(./zc -d db.rank -f oo) <(echo -ne "foo\n")
+	cmp <(./zc -d db.rank -f oo) <(echo -ne "foo\n")  # Frequency like rank
 	rm db.rank
 
 # Only print the output that was most recently added
 check_time:
 	rm -f db.time
 	./zc -d db.time -a foo
+	cmp <(./zc -d db.time -r oo) <(echo -ne "foo\n")  # Just one
 	./zc -d db.time -a foo
 	./zc -d db.time -a Foo
-	cmp <(./zc -d db.time -t oo) <(echo -ne "Foo\n")
+	cmp <(./zc -d db.time -t oo) <(echo -ne "Foo\n")  # Most recent
+	./zc -d db.time -a baz bar                        # Add multiple
+	cmp <(./zc -d db.time -t ba) <(echo -ne "bar\n")  # Name breaks ties
 	rm db.time
