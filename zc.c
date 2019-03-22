@@ -141,9 +141,8 @@ struct row *add(struct row *head, char *path) {
 
 // Construct a new list of all entries matching argv[0]...argv[argc-1]
 struct row *matches(struct row *head, int argc, char **argv) {
-
-    // Accumulate all entries matching all segments
     struct row * results = NULL;
+
     for (struct row *curr = head; curr; curr = curr->next) {
         bool all = true;
         char *q = curr->path;
@@ -166,20 +165,24 @@ struct row *matches(struct row *head, int argc, char **argv) {
 
 typedef int (*comparator)(struct row *, struct row *);
 
+int compare_times(struct row *a, struct row *b) {
+    int i = b->time - a->time;
+    return i ? i : strcmp(a->path, b->path);
+}
+
 int compare_paths(struct row *a, struct row *b) {
-    return strcmp(a->path, b->path);
+    int i = strcmp(a->path, b->path);
+    return i ? i : compare_times(a, b);
 }
 
 int compare_ranks(struct row *a, struct row *b) {
-    return b->rank - a->rank;
-}
-
-int compare_times(struct row *a, struct row *b) {
-    return b->time - a->time;
+    int i = b->rank - a->rank;
+    return i ? i : compare_times(a, b);
 }
 
 int compare_frecencies(struct row *a, struct row *b) {
-    return b->frecency - a->frecency;
+    int i = b->frecency - a->frecency;
+    return i ? i : compare_times(a, b);
 }
 
 void fprint_paths(FILE *stream, struct row *list, int intersep, int aftersep) {
