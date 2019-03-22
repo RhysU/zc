@@ -31,14 +31,7 @@ static long NOW = 0;
 #define AGING_THRESHOLD (9000)
 #define AGING_RESCALING (0.99)
 
-struct row {
-    struct row *next;
-    char *path;
-    long rank;
-    long millis;
-    long frecency;
-};
-
+// See rupa/z for background on this portmanteau of frequent and recent
 long frecency(long rank, long millis) {
     long age = millis - NOW;
     // Units: D    H    M    S   MS
@@ -48,12 +41,20 @@ long frecency(long rank, long millis) {
     return rank / 4;
 }
 
-struct row *cons(struct row *tail, char *path, long rank, long millis) {
+struct row {
+    struct row *next;
+    char *path;
+    long rank;
+    long millis;
+    long frecency;
+};
+
+struct row *cons(struct row *list, char *path, long rank, long millis) {
     struct row * head = malloc(sizeof(struct row));
     if (!head) {
         die("Failed malloc (%d): %s", errno, strerror(errno));
     }
-    head->next = tail;
+    head->next = list;
     head->path = path;
     head->frecency = frecency(rank, millis);
     head->rank = rank;
