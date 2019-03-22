@@ -10,10 +10,15 @@ clean:
 
 # Simple unit testing employs some Bashisms combined with GNU Make
 SHELL  := /bin/bash -o pipefail
-CHECKS := check_create check_all check_match check_rank check_time
+CHECKS := check_help check_create check_all check_match check_rank check_time
 check: ${CHECKS}
 .PHONY: check ${CHECKS}
 ${CHECKS}: zc
+
+# Help messages must be emitted and a database is required
+check_help:
+	./zc -h | awk 'END {exit(NR!=2)}'  # Zero exit with exactly 2 lines
+	(./zc && false) || true            # Non-zero exit
 
 # A non-existent database must be created with zero length
 check_create:
