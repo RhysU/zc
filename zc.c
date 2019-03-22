@@ -61,19 +61,6 @@ struct row *cons(struct row *tail, char *path, long rank, long time) {
     return head;
 }
 
-// TODO Likely not needed in the final version
-struct row *reverse(struct row *head)
-{
-    struct row *prev = NULL, *curr = head, *next;
-    while (curr) {
-        next = curr->next;
-        curr->next = prev;
-        prev = curr;
-        curr = next;
-    }
-    return prev;
-}
-
 struct row *load(FILE *database) {
     struct row *head = NULL;
     if (database) {
@@ -108,11 +95,11 @@ struct row *load(FILE *database) {
                            time, line, errno, strerror(errno));
             if (strtok(NULL, DELIMITERS)) die("Excess in line %d", line);
 
-            // Build up the reverse of the desired result
+            // Build up the desired result
             head = cons(head, path, rankl, timel);
         }
     }
-    return reverse(head);
+    return head;
 }
 
 // Unlike rupa/z, here aging cannot exclude the newest addition.
@@ -160,7 +147,7 @@ struct row *matches(struct row *head, int argc, char **argv) {
         }
     }
 
-    return reverse(results);
+    return results;
 }
 
 typedef int (*comparator)(struct row *, struct row *);
