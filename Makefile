@@ -18,7 +18,10 @@ check_create: zc
 	rm db.create
 check_all: zc
 	rm -f db.all
+	./zc -d db.all -a A
+	./zc -d db.all -a A
 	./zc -d db.all -a B
+	./zc -d db.all -a C
 	./zc -d db.all -a C
 	./zc -d db.all -a A
 	cmp <(./zc -d db.all) <(echo -ne "A\nB\nC\n")
