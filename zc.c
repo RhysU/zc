@@ -214,6 +214,7 @@ struct row *sort(struct row *list, comparator cmp, bool reverse) {
     }
 
     // Recurse on a/b with ordering flip to handle singly-linked data
+    // divided as done during the above split operation.
     a = sort(a, cmp, !reverse);
     b = sort(b, cmp, !reverse);
 
