@@ -181,10 +181,20 @@ int compare_frecencies(struct row *a, struct row *b) {
     return a->frecency - b->frecency;
 }
 
-void fprint_paths(FILE *stream, struct row *tail, char sep) {
-    for (struct row *curr = tail; curr; curr = curr->next) {
-        fprintf(stream, "%s%c", curr->path, sep);
+void fprint_paths(FILE *stream, struct row *list, int intersep, int aftersep) {
+    for (; list; list = list->next) {
+        fputs(list->path, stream);
+        if (list->next) {
+            fputc(intersep, stream);
+        }
     }
+    if (aftersep) {
+        fputc(aftersep, stream);
+    }
+}
+
+void print_paths(struct row *list, int intersep, int aftersep) {
+    return fprint_paths(stdout, list, intersep, aftersep);
 }
 
 // Move non-NULL head from src onto dest.
@@ -214,7 +224,7 @@ struct row *sort(struct row *list, comparator cmp, bool reverse) {
     a = sort(a, cmp, !reverse);
     b = sort(b, cmp, !reverse);
 
-    // Merge the recursive results adhering to reverse
+    // Merge the recursive results onto a fresh list adhering to reverse
     int maybe_reverse = reverse ? -1 : 1;
     while (a) {
         if (b && maybe_reverse * cmp(a, b) <= 0) {
@@ -298,7 +308,7 @@ int main(int argc, char **argv)
         }
         // Overwrite database with updated contents for all positive ranks
         if (!freopen(NULL, "w", database)) {
-            die("Error freopening (%d): %s", errno, strerror(errno));
+            die("Error freopen-ing (%d): %s", errno, strerror(errno));
         }
         for (struct row *curr = head; curr; curr = curr->next) {
             if (curr->rank > 0) {
@@ -309,7 +319,6 @@ int main(int argc, char **argv)
         exit(EXIT_SUCCESS);
     }
 
-    // FIXME Broken somehow
     // Find all entries matching the positional segments
     head = matches(head, argc - optind, &argv[optind]);
 
@@ -319,9 +328,9 @@ int main(int argc, char **argv)
     // Either print all matching entries from the database...
     // ...or print only the first result.
     if (mode == COMPLETE) {
-        fprint_paths(stdout, head, '\n');
+        print_paths(head, '\n', '\n');
     } else if (head) {
-        fprintf(stdout, "%s\n", head->path);
+        printf("%s\n", head->path);
     }
 
     exit(EXIT_SUCCESS);
