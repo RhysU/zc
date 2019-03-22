@@ -182,13 +182,14 @@ int compare_frecencies(struct row *a, struct row *b) {
 }
 
 void fprint_paths(FILE *stream, struct row *list, int intersep, int aftersep) {
-    for (; list; list = list->next) {
+    bool any = false;
+    for (; list; list = list->next, any = true) {
         fputs(list->path, stream);
         if (list->next) {
             fputc(intersep, stream);
         }
     }
-    if (aftersep) {
+    if (any && aftersep) {
         fputc(aftersep, stream);
     }
 }
