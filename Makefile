@@ -35,3 +35,16 @@ check_all:
 	./zc -d db.all -a A
 	cmp <(./zc -d db.all) <(echo -ne "A\nB\nC\ndd\n")
 	rm db.all
+
+# All partial matches of any substring must be emitted
+check_match:
+	rm -f db.match
+	./zc -d db.match -a foo
+	./zc -d db.match -a Foobar
+	./zc -d db.match -a barBaz
+	./zc -d db.match -a qux
+	cmp <(./zc -d db.match '' '') <(echo -ne "Foobar\nbarBaz\nfoo\nqux\n")
+	cmp <(./zc -d db.match bar) <(echo -ne "Foobar\nbarBaz\n")
+	cmp <(./zc -d db.match Foo) <(echo -ne "Foobar\n")
+	cmp <(./zc -d db.match 'ba' 'z') <(echo -ne "barBaz\n")
+	rm db.match
