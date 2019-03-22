@@ -10,7 +10,7 @@ clean:
 
 # Simple unit testing employs some Bashisms combined with GNU Make
 SHELL  := /bin/bash -o pipefail
-CHECKS := check_create check_all check_match
+CHECKS := check_create check_all check_match check_rank
 check: ${CHECKS}
 .PHONY: check ${CHECKS}
 ${CHECKS}: zc
@@ -48,3 +48,13 @@ check_match:
 	cmp <(./zc -d db.match Foo) <(echo -ne "Foobar\n")
 	cmp <(./zc -d db.match 'ba' 'z') <(echo -ne "barBaz\n")
 	rm db.match
+
+# Only the output with the highest rank must be printed
+check_rank:
+	rm -f db.rank
+	./zc -d db.rank -a foo
+	./zc -d db.rank -a Foo
+	./zc -d db.rank -a foo
+	cmp <(./zc -d db.rank -r oo) <(echo -ne "foo\n")  # Rank
+	cmp <(./zc -d db.rank -f oo) <(echo -ne "foo\n")  # Frecency
+	rm db.rank

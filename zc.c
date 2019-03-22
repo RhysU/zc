@@ -39,6 +39,7 @@ struct row {
     long frecency;
 };
 
+// TODO Human-readable units
 long frecency(long rank, long time) {
     long age = (time - NOW);
     if (age <   3600000) return rank * 4;
@@ -170,15 +171,15 @@ int compare_paths(struct row *a, struct row *b) {
 }
 
 int compare_ranks(struct row *a, struct row *b) {
-    return a->rank - b->rank;
+    return b->rank - a->rank;
 }
 
 int compare_times(struct row *a, struct row *b) {
-    return a->time - b->time;
+    return b->time - a->time;
 }
 
 int compare_frecencies(struct row *a, struct row *b) {
-    return a->frecency - b->frecency;
+    return b->frecency - a->frecency;
 }
 
 void fprint_paths(FILE *stream, struct row *list, int intersep, int aftersep) {
