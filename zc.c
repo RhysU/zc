@@ -39,12 +39,12 @@ struct row {
     long frecency;
 };
 
-// TODO Human-readable units
-long frecency(long rank, long time) {
-    long age = (time - NOW);
-    if (age <   3600000) return rank * 4;
-    if (age <  86400000) return rank * 2;
-    if (age < 604800000) return rank / 2;
+long frecency(long rank, long millis) {
+    long age = millis - NOW;
+    // Units: D    H    M    S   MS
+    if (age <          60 * 60 * 1000) return rank * 4;
+    if (age <     24 * 60 * 60 * 1000) return rank * 2;
+    if (age < 7 * 24 * 60 * 60 * 1000) return rank / 2;
     return rank / 4;
 }
 
