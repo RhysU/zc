@@ -1,12 +1,15 @@
-CFLAGS := -std=c99 -Wall -Wextra -Werror -O3 -static
-
 all: zc
 
+CFLAGS := -std=c99 -Wall -Wextra -Werror -O3 -static
 zc: zc.c
 
 .PHONY: clean
 clean:
 	rm -f zc
+
+.PHONY: install
+install: zc
+	/usr/bin/install --verbose $< ${HOME}/bin/$<
 
 # Simple unit testing employs some Bashisms combined with GNU Make
 SHELL  := /bin/bash -o pipefail
