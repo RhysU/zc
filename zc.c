@@ -316,7 +316,7 @@ int main(int argc, char **argv)
 
     // Possibly add entries to the database...
     if (mode == ADD) {
-        // Add in reverse of CLI as if separate program invocations
+        // Add multiple in reverse of CLI as if separate program invocations
         for (int ipos = argc; ipos --> optind;) {
             head = add(head, argv[ipos]);
         }
@@ -339,13 +339,23 @@ int main(int argc, char **argv)
     // Sort all matches per the given criterion
     head = sort(head, cmp, false);
 
-    // Either print all matching entries from the database...
-    // ...or print only the first result.
-    if (mode == COMPLETE) {
-        print_paths(head, '\n', '\n');
-    } else if (head) {
-        printf("%s\n", head->path);
-    }
+    // Perform any final, mode-specific processing
+    switch (mode) {
+    default:
+        die("Unexpected mode %d", mode);
 
-    exit(EXIT_SUCCESS);
+    case COMPLETE:
+        // Print all matching entries from the database
+        print_paths(head, '\n', '\n');
+        exit(EXIT_SUCCESS);
+
+    case ONE:
+        // Print any first result with success conditional on a result
+        if (head) {
+            printf("%s\n", head->path);
+            exit(EXIT_SUCCESS);
+        } else {
+            exit(EXIT_FAILURE);
+        }
+    }
 }
