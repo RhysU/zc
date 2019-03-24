@@ -47,29 +47,30 @@ struct row {
     long rank;
     long millis;
     long frecency;
-    char *path;
+    char path[0];
 };
 
 struct row *cons(struct row *list, char *path, long rank, long millis) {
-    struct row * head = malloc(sizeof(struct row));
+    size_t pathlen = strlen(path);
+    struct row * head = malloc(sizeof(struct row) + pathlen + 1);
     if (!head) {
         die("Failed malloc (%d): %s", errno, strerror(errno));
     }
     head->next = list;
-    head->path = path;
-    head->frecency = frecency(rank, millis);
     head->rank = rank;
     head->millis = millis;
+    head->frecency = frecency(rank, millis);
+    strncpy(head->path, path, pathlen);
     return head;
 }
 
 struct row *load(FILE *database) {
     struct row *head = NULL;
     if (database) {
+        char *lineptr = NULL;
+        size_t n = 0;
         for (int line = 1; /*NOP*/; errno = 0, ++line) {
             // Load each line of the file into lineptr
-            char *lineptr = NULL;
-            size_t n = 0;
             ssize_t bytes = getline(&lineptr, &n, database);
             if (errno) {
                 die("Failed reading database at line %d (%d): %s",
@@ -97,9 +98,10 @@ struct row *load(FILE *database) {
                            millis, line, errno, strerror(errno));
             if (strtok(NULL, DELIMITERS)) die("Excess in line %d", line);
 
-            // Build up the desired result
+            // Build up the desired result (which copies path)
             head = cons(head, path, rankl, timel);
         }
+        free(lineptr);
     }
     return head;
 }
