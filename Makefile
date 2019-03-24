@@ -79,3 +79,24 @@ check_time:
 	./zc -d db.time -a baz bar                        # Add multiple
 	cmp <(./zc -d db.time -t ba) <(echo -ne "bar\n")  # Name breaks ties
 	rm db.time
+
+# A performance sanity check over half-sane workloads
+.PHONY: stress
+in.stress: Makefile
+	rm -f $@
+	head -c 131072 /dev/urandom | tr -dc 'a-zA-Z0-9' | fold -w 23 > $@.tmp
+	cat <(head -n  10 $@.tmp) \
+	    <(head -n  15 $@.tmp) \
+	    <(head -n  25 $@.tmp) \
+	    <(head -n  35 $@.tmp) \
+	    <(head -n  50 $@.tmp) \
+	    <(head -n  75 $@.tmp) \
+	    <(head -n 100 $@.tmp) \
+	    <(head -n 200 $@.tmp) \
+	    $@.tmp                | shuf > $@
+	rm -f $@.tmp
+stress: zc in.stress
+	rm -f db.stress
+	wc in.stress
+	time xargs --arg-file=in.stress -n 1 ./zc -d db.stress -a
+	rm db.stress

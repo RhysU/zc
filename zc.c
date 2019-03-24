@@ -41,12 +41,13 @@ long frecency(long rank, long millis) {
     return rank / 4;
 }
 
+// Primary data structure is a singly-linked list
 struct row {
     struct row *next;
-    char *path;
     long rank;
     long millis;
     long frecency;
+    char *path;
 };
 
 struct row *cons(struct row *list, char *path, long rank, long millis) {
