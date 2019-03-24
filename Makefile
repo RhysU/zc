@@ -1,4 +1,4 @@
-CFLAGS := -std=c99 -Wall -Wextra -Werror -g -O0 # -O3
+CFLAGS := -std=c99 -Wall -Wextra -Werror -O3 -static
 
 all: zc
 
