@@ -41,7 +41,7 @@ long frecency(long rank, long millis) {
     return rank / 4;
 }
 
-// Primary data structure is a singly-linked list
+// Primary data structure is a singly-linked list employing the 'struct hack'
 struct row {
     struct row *next;
     long rank;
@@ -50,6 +50,34 @@ struct row {
     char path[0];
 };
 
+// Move non-NULL head from src onto dest.
+void move(struct row **dst, struct row **src) {
+    struct row *item = *src;
+    *src = (*src)->next;
+    item->next = *dst;
+    *dst = item;
+}
+
+// Print the paths from list to the given stream (useful for debugging)
+void fprint_paths(FILE *stream, struct row *list, int intersep, int aftersep) {
+    bool any = false;
+    for (; list; list = list->next, any = true) {
+        fputs(list->path, stream);
+        if (list->next) {
+            fputc(intersep, stream);
+        }
+    }
+    if (any && aftersep) {
+        fputc(aftersep, stream);
+    }
+}
+
+// Print the paths from list to standard output (useful for results)
+void print_paths(struct row *list, int intersep, int aftersep) {
+    return fprint_paths(stdout, list, intersep, aftersep);
+}
+
+// Prepend a new element onto *list containing a copy of path
 struct row *cons(struct row *list, char *path, long rank, long millis) {
     size_t pathlen = strlen(path);
     struct row * head = malloc(sizeof(struct row) + pathlen + 1);
@@ -64,6 +92,7 @@ struct row *cons(struct row *list, char *path, long rank, long millis) {
     return head;
 }
 
+// Return an in-memory copy of the given database.
 struct row *load(FILE *database) {
     struct row *head = NULL;
     if (database) {
@@ -106,11 +135,14 @@ struct row *load(FILE *database) {
     return head;
 }
 
+// Add a new entry to the in-memory database, rescaling existing as needed.
 // Unlike rupa/z, here aging cannot exclude the newest addition.
-struct row *add(struct row *head, char *path) {
+struct row *add(struct row *list, char *path) {
+
+    // Process existing entries
     bool found = false;
     long count = 0;
-    for (struct row *curr = head; curr; curr = curr->next) {
+    for (struct row *curr = list; curr; curr = curr->next) {
         if (0 == strcmp(path, curr->path)) {
             found = true;
             ++curr->rank;
@@ -118,16 +150,21 @@ struct row *add(struct row *head, char *path) {
         }
         count += curr->rank;
     }
+
+    // Age existing entries as necessary
     if (count > AGING_THRESHOLD) {
-        for (struct row *curr = head; curr; curr = curr->next) {
+        for (struct row *curr = list; curr; curr = curr->next) {
             curr->rank *= AGING_RESCALING;
         }
     }
+
+    // If needed, add a new entry for the request path
     if (!found) {
-        head = cons(head, path, 1L, NOW);
+        list = cons(list, path, 1L, NOW);
         ++count;
     }
-    return head;
+
+    return list;
 }
 
 // Construct a new list of all entries matching argv[0]...argv[argc-1]
@@ -154,6 +191,8 @@ struct row *matches(struct row *head, int argc, char **argv) {
     return results;
 }
 
+
+// Type of various comparators usable with sort(...) below.
 typedef int (*comparator)(struct row *, struct row *);
 
 int compare_times(struct row *a, struct row *b) {
@@ -176,31 +215,7 @@ int compare_frecencies(struct row *a, struct row *b) {
     return i ? i : compare_times(a, b);
 }
 
-void fprint_paths(FILE *stream, struct row *list, int intersep, int aftersep) {
-    bool any = false;
-    for (; list; list = list->next, any = true) {
-        fputs(list->path, stream);
-        if (list->next) {
-            fputc(intersep, stream);
-        }
-    }
-    if (any && aftersep) {
-        fputc(aftersep, stream);
-    }
-}
-
-void print_paths(struct row *list, int intersep, int aftersep) {
-    return fprint_paths(stdout, list, intersep, aftersep);
-}
-
-// Move non-NULL head from src onto dest.
-void move(struct row **dst, struct row **src) {
-    struct row *item = *src;
-    *src = (*src)->next;
-    item->next = *dst;
-    *dst = item;
-}
-
+// Sort list in-place and return the new head node
 struct row *sort(struct row *list, comparator cmp, bool reverse) {
     // Eagerly return when no work to perform
     if (!list || !list->next) {
@@ -237,12 +252,14 @@ struct row *sort(struct row *list, comparator cmp, bool reverse) {
     return list;
 }
 
+// Obtain milliseconds since the Unix epoch
 long milliseconds() {
     struct timeval now;
     gettimeofday(&now, NULL);
     return 1000*now.tv_sec + now.tv_usec/1000;
 }
 
+// Processing either adds an entry, displays all matching, or displays one
 enum mode { ADD, COMPLETE, ONE };
 
 int main(int argc, char **argv)
