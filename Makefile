@@ -99,4 +99,5 @@ stress: zc in.stress
 	rm -f db.stress
 	wc in.stress
 	time xargs --arg-file=in.stress -n 1 ./zc -d db.stress -a
+	time xargs --arg-file=in.stress -n 1 ./zc -d db.stress > /dev/null
 	rm db.stress
