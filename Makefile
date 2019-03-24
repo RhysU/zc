@@ -57,6 +57,8 @@ check_match:
 # Only print the output with the highest rank (and therefore frecency)
 check_rank:
 	rm -f db.rank
+	if ./zc -d db.rank -r; then false; else true; fi  # Nothing found is error
+	if ./zc -d db.rank -f; then false; else true; fi  # Nothing found is error
 	./zc -d db.rank -a foo
 	cmp <(./zc -d db.rank -r oo) <(echo -ne "foo\n")  # Just one
 	cmp <(./zc -d db.rank -f oo) <(echo -ne "foo\n")  # Frequency like rank
@@ -71,6 +73,7 @@ check_rank:
 # Only print the output that was most recently added
 check_time:
 	rm -f db.time
+	if ./zc -d db.rank -t; then false; else true; fi  # Nothing found is error
 	./zc -d db.time -a foo
 	cmp <(./zc -d db.time -r oo) <(echo -ne "foo\n")  # Just one
 	./zc -d db.time -a foo
