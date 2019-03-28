@@ -13,7 +13,9 @@
 #include <string.h>
 #include <strings.h>
 #include <sys/file.h>
+#include <sys/stat.h>
 #include <sys/time.h>
+#include <sys/types.h>
 #include <unistd.h>
 
 // Initialized in main(...)
@@ -268,15 +270,16 @@ int main(int argc, char **argv)
 
     // Process arguments with post-condition that database is loaded.
     FILE *database = NULL;
+    bool keep = false;
     int option;
     enum mode mode = COMPLETE;
     comparator cmp = &compare_paths;
-    while ((option = getopt(argc, argv, "ad:fhrt")) != -1) {
+    while ((option = getopt(argc, argv, "ad:fkhrt")) != -1) {
         switch (option) {
         default:
         case 'h':
             fprintf(option == 'h' ? stdout : stderr,
-                    "Usage: %s -d DATABASE -a PATH...\n"
+                    "Usage: %s -d DATABASE [-k] -a PATH...\n"
                     "Usage: %s -d DATABASE [-f] [-r] [-t] NEEDLE...\n",
                     argv[0], argv[0]);
             exit(option == 'h' ? EXIT_SUCCESS : EXIT_FAILURE);
@@ -296,6 +299,9 @@ int main(int argc, char **argv)
         case 'f':
             cmp = &compare_frecencies;
             mode = ONE;
+            break;
+        case 'k':
+            keep = true;
             break;
         case 'r':
             cmp = &compare_ranks;
@@ -320,15 +326,17 @@ int main(int argc, char **argv)
         for (int ipos = argc; ipos --> optind;) {
             head = add(head, argv[ipos]);
         }
-        // Overwrite database with updated contents for all positive ranks
+        // Overwrite database with updated contents for all positive ranks.
+        // Unless keep (-k) is specified, remove non-existent paths too.
         if (!freopen(NULL, "w", database)) {
             die("Error freopen-ing (%d): %s", errno, strerror(errno));
         }
+        struct stat sb;
         for (struct row *curr = head; curr; curr = curr->next) {
-            if (curr->rank > 0) {
-                fprintf(database, "%s%c%ld%c%ld\n", curr->path,
-                        SEPARATOR, curr->rank, SEPARATOR, curr->millis);
-            }
+            if (curr->rank <= 0) continue;
+            if (!keep && lstat(curr->path, &sb)) continue;
+            fprintf(database, "%s%c%ld%c%ld\n", curr->path,
+                    SEPARATOR, curr->rank, SEPARATOR, curr->millis);
         }
         exit(EXIT_SUCCESS);
     }
