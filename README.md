@@ -15,16 +15,18 @@ the following advantages:
  1. zc isolates maintaining the recently-visited database from shell details.
  2. zc uses flocks to avoid clobbering the database in, e.g., GNU Screen.
  3. zc has the overhead like launching one single process.
- 4. zc has unit tests.
+ 4. zc has unit tests and some minimal performance testing.
 
 Relative to rupa/z, `zc` has the following disadvantages:
 
- 1. zc must be compiled *and* you have to read my lousy C.
- 2. Regex search is not implemented.
- 3. Bash integration (found below) requires
+ 1. zc must be compiled *and* you have to read [my lousy C](zc.c).
+ 2. The mechanism for cleaning up subsequently removed directories might
+    be unfriendly to network filesystems.
+ 3. Regex search is not implemented.
+ 4. Bash integration (found below) requires
     [bash-preexec](https://github.com/rcaloras/bash-preexec).
- 4. Bash integration presently lacks tab completion.
- 5. Zero adoption by anyone but me.
+ 5. Bash integration presently lacks tab completion.
+ 6. Zero adoption by anyone but me.
 
 ## How do I use it?
 
