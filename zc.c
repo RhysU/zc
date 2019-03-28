@@ -96,11 +96,12 @@ struct row *cons(struct row *list, char *path, long rank, long millis) {
 
 // Return an in-memory copy of the given database.
 struct row *load(FILE *database) {
+    errno = 0;
     struct row *head = NULL;
     if (database) {
         char *lineptr = NULL;
         size_t n = 0;
-        for (int line = 1; /*NOP*/; errno = 0, ++line) {
+        for (int line = 1; /*NOP*/; ++line) {
             // Load each line of the file into lineptr
             ssize_t bytes = getline(&lineptr, &n, database);
             if (errno) {
