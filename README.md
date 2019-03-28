@@ -19,7 +19,7 @@ the following advantages:
 
 Relative to rupa/z, `zc` has the following disadvantages:
 
- 1. zc must be compiled.
+ 1. zc must be compiled *and* you have to read my lousy C.
  2. Regex search is not implemented.
  3. Bash integration (found below) requires
     [bash-preexec](https://github.com/rcaloras/bash-preexec).
