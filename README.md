@@ -15,7 +15,8 @@ the following advantages:
  1. zc isolates maintaining the recently-visited database from shell details.
  2. zc uses flocks to avoid clobbering the database in, e.g., GNU Screen.
  3. zc has the overhead like launching one single process.
- 4. zc has unit tests and some minimal performance testing.
+ 4. zc has decent unit tests (try `make check`).
+ 5. zc has some minimal performance testing (try `make stress`).
 
 Relative to rupa/z, `zc` has the following disadvantages:
 
@@ -25,8 +26,7 @@ Relative to rupa/z, `zc` has the following disadvantages:
  3. Regex search is not implemented.
  4. Bash integration (found below) requires
     [bash-preexec](https://github.com/rcaloras/bash-preexec).
- 5. Bash integration presently lacks tab completion.
- 6. Zero adoption by anyone but me.
+ 5. Zero adoption by anyone but me.
 
 ## How do I use it?
 
@@ -72,18 +72,30 @@ fi
 
 # Run http://github.com/RhysU/zc in some mode against fixed database.
 # Whenever it succeeds and only one line is output, attempt to pushd there.
-# Takes advantage of knowledge that zc has a 2-line help message.
-# Nicer would be providing a more-useful -h message, but so it goes.
 z() {
     local zout newline='
 '
     if zout=$(z_raw "$@"); then
         case $zout in
-          *"$newline"*) echo "$zout"          ;;
-                     *) builtin pushd "$zout" ;;
+          *"$newline"*) echo "$zout"          ;;  # 2+ matches => display
+                    "") builtin pushd "$@"    ;;  # No match => use input
+                     *) builtin pushd "$zout" ;;  # One match => use match
         esac
     fi
 }
+zf() { z -f -- "$@"; }  # Abbreviation
+zr() { z -r -- "$@"; }  # Abbreviation
+zt() { z -t -- "$@"; }  # Abbreviation
+
+# Z becomes much more useful with tab completion hooks installed.
+# Above z() must accommodate trailing slashes because of '-o filenames'.
+_z_completion() {
+    COMPREPLY=()
+    while IFS=$'\n' read -r line; do
+        COMPREPLY+=("$line")
+    done < <(z_raw -- "${COMP_WORDS[@]:1}")
+}
+complete -o filenames -F _z_completion z
 
 # On every command, record the working directory using z_add.
 # Versus https://github.com/rupa/z, updating per-command nicer for GNU Screen.
