@@ -81,8 +81,8 @@ void print_paths(struct row *list, int intersep, int aftersep) {
 
 // Prepend a new element onto *list containing a copy of path
 struct row *cons(struct row *list, char *path, long rank, long millis) {
-    size_t pathlen = strlen(path);
-    struct row * head = malloc(sizeof(struct row) + pathlen + 1);
+    size_t pathlen1 = strlen(path) + 1;
+    struct row * head = malloc(sizeof(struct row) + pathlen1);
     if (!head) {
         die("Failed malloc (%d): %s", errno, strerror(errno));
     }
@@ -90,7 +90,7 @@ struct row *cons(struct row *list, char *path, long rank, long millis) {
     head->rank = rank;
     head->millis = millis;
     head->frecency = frecency(rank, millis);
-    strncpy(head->path, path, pathlen);
+    memcpy(head->path, path, pathlen1);
     return head;
 }
 
