@@ -93,7 +93,7 @@ _z_completion() {
     COMPREPLY=()
     while IFS=$'\n' read -r line; do
         COMPREPLY+=("$line")
-    done < <(z_raw -- "${COMP_WORDS[@]:1}")
+    done < <(z_raw -k -- "${COMP_WORDS[@]:1}")
 }
 complete -o filenames -F _z_completion z
 
