@@ -15,10 +15,11 @@ install: zc
 # Simple unit testing employs some Bashisms combined with GNU Make
 SHELL := /bin/bash -o pipefail
 
-# Help messages must be emitted and a database is required
+# Help/version messages must be emitted and a database is required
 CHECKS = check_help
 check_help:
 	./zc -h | awk 'END {exit(NR!=2)}'  # Zero exit with exactly 2 lines
+	./zc -v | awk 'END {exit(NR!=1)}'  # Zero exit with exactly 1 line
 	(./zc && false) || true            # Non-zero exit
 
 # A non-existent database must be created with zero length
