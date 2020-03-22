@@ -6,6 +6,7 @@
 #define _POSIX_C_SOURCE 200809L
 #include <ctype.h>
 #include <errno.h>
+#include <libgen.h>
 #include <limits.h>
 #include <stdio.h>
 #include <stdbool.h>
@@ -27,6 +28,15 @@ static long NOW = 0;
         fputc('\n', stderr);          \
         exit(EXIT_FAILURE); }         \
     while (0)
+
+// Stringify
+#define XSTR(x) STR(x)
+#define STR(x) #x
+
+// Build system should supply -DVERSION=something
+#ifndef VERSION
+#define VERSION UNKNOWN
+#endif
 
 #define SEPARATOR ('|')
 #define DELIMITERS ("|\n")
@@ -270,19 +280,20 @@ int main(int argc, char **argv)
     NOW = milliseconds();
 
     // Process arguments with post-condition that database is loaded.
+    char *progname = basename(argv[0]);
     FILE *database = NULL;
     bool keep = false;
     int option;
     enum mode mode = COMPLETE;
     comparator cmp = &compare_paths;
-    while ((option = getopt(argc, argv, "ad:fkhrt")) != -1) {
+    while ((option = getopt(argc, argv, "ad:fkhrtv")) != -1) {
         switch (option) {
         default:
         case 'h':
             fprintf(option == 'h' ? stdout : stderr,
                     "Usage: %s -d DATABASE [-k] -a PATH...\n"
                     "Usage: %s -d DATABASE [-f] [-r] [-t] NEEDLE...\n",
-                    argv[0], argv[0]);
+                    progname, progname);
             exit(option == 'h' ? EXIT_SUCCESS : EXIT_FAILURE);
         case 'a':
             mode = ADD;
@@ -312,6 +323,9 @@ int main(int argc, char **argv)
             cmp = &compare_times;
             mode = ONE;
             break;
+        case 'v':
+            printf("%s version %s\n", progname, XSTR(VERSION));
+            exit(EXIT_SUCCESS);
         }
     }
     if (!database) {

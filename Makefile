@@ -1,6 +1,7 @@
 all: zc
 
-CFLAGS := -std=c99 -Wall -Wextra -Werror -O3 -static
+VERSION := $(shell git describe --always --tags --dirty)
+CFLAGS := -std=c99 -Wall -Wextra -Werror -O3 -static -DVERSION=$(VERSION)
 zc: zc.c
 
 .PHONY: clean
