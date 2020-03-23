@@ -291,8 +291,8 @@ int main(int argc, char **argv)
         default:
         case 'h':
             fprintf(option == 'h' ? stdout : stderr,
-                    "Usage: %s -d DATABASE [-k] -a PATH...\n"
-                    "Usage: %s -d DATABASE [-f] [-r] [-t] NEEDLE...\n",
+                    "Usage: %s -d DATABASE [-k] -a -- PATH...\n"
+                    "Usage: %s -d DATABASE [-f] [-r] [-t] -- NEEDLE...\n",
                     progname, progname);
             exit(option == 'h' ? EXIT_SUCCESS : EXIT_FAILURE);
         case 'a':
@@ -329,7 +329,7 @@ int main(int argc, char **argv)
         }
     }
     if (!database) {
-        die("Database required per help available with -h.");
+        die("DATABASE required per help (-h).");
     }
     struct row *head = load(database);
 
