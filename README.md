@@ -1,5 +1,4 @@
-[![Build Status](https://travis-ci.org/RhysU/zc.svg?branch=master)](https://travis-ci.org/RhysU/zc)
-
+[![Build Status](https://travis-ci.com/RhysU/zc.svg?branch=master)](https://travis-ci.com/github/RhysU/zc)
 # zc
 
 ## What is zc?
